@@ -12,6 +12,7 @@ Este es el repositorio para las sesiones de regresión en SEAST 2015-16. Cada al
    * javi
    * manu
    * pilar
+   
  Cada alumno debe, usando la consola a la que se accede desde Rstudio en Tools
  -> Shell, crear y cambiar a la rama que lleva su nombre. Por ejemplo, Alba
  deberá hacer: 
