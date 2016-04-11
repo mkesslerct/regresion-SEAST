@@ -2,13 +2,14 @@ Trabajo Regresión lineal: predicción de la nota media de los alumnos de grado 
 ========================================================
 
 
-Nombre:
+Nombre: Francisco José
 
-Apellidos:
+Apellidos: Maldonado Caro
 
 ```{r preliminares}
 ## cargamos los paquetes dplyr, ggplot2
-
+library("dplyr")
+library("ggplot2")
 ```
 
 # Introducción
@@ -32,7 +33,7 @@ Vamos a empezar con un conjunto simplificado donde sólo consideramos en cuanto 
 Cargar los datos en un dataframe llamado **GradosTelecoSimple**
 ```{r}
 ## Completar aqui"
-
+GradosTelecoSimple <- read.table("./data/notamediagradosETSIT-simple.csv", header=TRUE, sep =",")
 ```
 
 La nota media está calculada con las calificaciones de cada asignatura en una escala que va de 1 a 4 (1 es "Aprobado"", 2 "Notable", 3 "Sobresaliente", 4 "Matrícula de Honor")
@@ -43,13 +44,14 @@ Llevar a cabo la representación gráfica de la nota media al egresar en funció
 
 ```{r}
 ## Completar aqui"
-
+ggplot(data = GradosTelecoSimple, aes(y = notamedia, x = PAU_CALIFICACION_NOTA_MATERIA)) + geom_point()
 ```
 
 Llevar a cabo la representación gráfica de la nota media al egresar en función del ranking en cuanto a calificación PAU, expresado en decil.
 
 ```{r}
 # Completar aquí
+ggplot(data = GradosTelecoSimple, aes(y = notamedia, x = PAU_CALIFICACION_NOTA_MATERIA_DECIL)) + geom_point()
 
 ```
 
@@ -72,6 +74,9 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
 # Completar aquí
+y <- GradosTelecoSimple$notamedia
+X <- as.matrix(cbind(1, GradosTelecoSimple$PAU_CALIFICACION_NOTA_MATERIA))
+
 
 ```
 
@@ -81,7 +86,7 @@ Vamos ahora a implementar la función coste que llamaremos J así como el gradie
 J <- function(theta)
   {
   # teneís que calcular el coste aquí
-  
+  coste = (1/length(y))*(t(y-X%*%theta))%*%(y-X%*%theta)
 
   # fin completar
   return(coste)}
@@ -94,8 +99,9 @@ $$\nabla J(\theta)=\frac{2}{n} \mathbf{X}^T\cdot \left(\mathbf{X}\theta-y\right)
 gradJ <- function(theta)
   {
   ## completar aquí para devolver el vector gradiente
-
-  }
+  vectorgrad=(2/length(y))*t(X)%*%(X%*%theta-y)
+  
+  return(vectorgrad)}
 ```
 
 #### Comprobación implementación función coste:
@@ -155,13 +161,19 @@ Tenéis que modificar ahora vuestra implementación del algoritmo del gradiente 
 
 ```{r}
 ## Completar aquí
-
+theta=thetainicial
+for (i in 1:maxiter)
+  {
+    theta <- theta - alpha * gradJ(theta)
+    monitor[i,]=c(i, theta, J(theta), gradJ(theta), alpha)
+    }
 ```
 
 Podemos ahora representar gráficamente la evolución de la función coste en función de la iteración del algoritmo:
 ```{r}
 ## Completar aquí
-
+iter<-1:maxiter
+ggplot(monitor, aes(y = J, x = iter)) + geom_line(color="red")
 ```
 
 
@@ -171,7 +183,10 @@ Para comprobarlo, tenéis que representar la evolución del coste pero entre la 
 
 ```{r}
 ## completar aquí...
-
+monitor2<-monitor %>% 
+  filter(between(iter,50,maxiter))
+iter<-50:maxiter
+ggplot(monitor2, aes(y = J, x = iter)) + geom_line(color="red")
 ```
 
 Comprobamos así que no se ha alcanzado la convergencia, sino que el decrecimiento es muy lento. 
@@ -196,6 +211,21 @@ monitor[1,] <- c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 
 ```{r}
 ## Completar aqui, bucle alpha para implementación gradiente
+
+for (alpha in c(0.001,0.003,0.01))
+{
+  theta=thetainicial
+
+  for(i in 1:maxiter)
+  {
+    theta <- theta - alpha * gradJ(theta)
+    monitor[i,]=c(i, theta, J(theta), gradJ(theta), alpha)
+  }
+}
+monitor3<-monitor %>% 
+  filter(iter>50)
+iter<-50:maxiter
+ggplot(monitor3, aes(y = J, x = iter)) + geom_line()
 
 ```
 
