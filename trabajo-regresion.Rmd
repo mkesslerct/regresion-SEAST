@@ -2,12 +2,14 @@ Trabajo Regresión lineal: predicción de la nota media de los alumnos de grado 
 ========================================================
 
 
-Nombre:
+Nombre: Manuel Alejandro
 
-Apellidos:
+Apellidos: De la Torre Ruzafa
 
 ```{r preliminares}
 ## cargamos los paquetes dplyr, ggplot2
+library("dplyr")
+library("ggplot2")
 
 ```
 
@@ -32,6 +34,11 @@ Vamos a empezar con un conjunto simplificado donde sólo consideramos en cuanto 
 Cargar los datos en un dataframe llamado **GradosTelecoSimple**
 ```{r}
 ## Completar aqui"
+GradosTelecoSimple <- read.table(file = "data/notamediagradosETSIT-simple.csv",
+                       header=TRUE, 
+                       sep=",", 
+                       dec=".", 
+                       stringsAsFactors = FALSE)
 
 ```
 
@@ -43,6 +50,8 @@ Llevar a cabo la representación gráfica de la nota media al egresar en funció
 
 ```{r}
 ## Completar aqui"
+plot <- ggplot(data=GradosTelecoSimple, aes(x=PAU_CALIFICACION_NOTA_MATERIA, y=notamedia))
+plot + geom_point()
 
 ```
 
@@ -50,6 +59,8 @@ Llevar a cabo la representación gráfica de la nota media al egresar en funció
 
 ```{r}
 # Completar aquí
+plot <- ggplot(data=GradosTelecoSimple, aes(x=PAU_CALIFICACION_NOTA_MATERIA_DECIL, y=notamedia))
+plot + geom_point()
 
 ```
 
@@ -72,6 +83,8 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
 # Completar aquí
+y <- GradosTelecoSimple$notamedia
+X <- as.matrix(cbind(1,GradosTelecoSimple$PAU_CALIFICACION_NOTA_MATERIA))
 
 ```
 
@@ -81,7 +94,8 @@ Vamos ahora a implementar la función coste que llamaremos J así como el gradie
 J <- function(theta)
   {
   # teneís que calcular el coste aquí
-  
+  n = length(y)
+  coste = (1/n)*t(y - X%*%theta)%*%(y - X%*%theta)
 
   # fin completar
   return(coste)}
@@ -94,7 +108,9 @@ $$\nabla J(\theta)=\frac{2}{n} \mathbf{X}^T\cdot \left(\mathbf{X}\theta-y\right)
 gradJ <- function(theta)
   {
   ## completar aquí para devolver el vector gradiente
-
+  n = length(y)
+  gradJ = (2/n) * t(X) %*% (X %*% theta - y)
+  return(gradJ)
   }
 ```
 
@@ -155,13 +171,21 @@ Tenéis que modificar ahora vuestra implementación del algoritmo del gradiente 
 
 ```{r}
 ## Completar aquí
+theta <- thetainicial
+for (i in 1:maxiter)
+{
+  theta <- theta - alpha * gradJ(theta)
+  monitor[i,]=c(i, theta, J(theta), gradJ(theta), alpha)
+}
 
 ```
 
 Podemos ahora representar gráficamente la evolución de la función coste en función de la iteración del algoritmo:
 ```{r}
 ## Completar aquí
-
+iter=1:maxiter
+plot <- ggplot(monitor,aes(x=iter,y=J))
+plot + geom_line(color="red")
 ```
 
 
@@ -171,12 +195,19 @@ Para comprobarlo, tenéis que representar la evolución del coste pero entre la 
 
 ```{r}
 ## completar aquí...
+monitor_2 <-  monitor %>%
+              filter(between(iter,50,maxiter))
+iter=50:maxiter
+plot <- ggplot(monitor_2,aes(x=iter,y=J))
+plot + geom_line(color="red")
 
 ```
 
 Comprobamos así que no se ha alcanzado la convergencia, sino que el decrecimiento es muy lento. 
 
 Al comprobar las últimas filas del data.frame monitor, ¿podéis explicar por qué?
+
+Es debido a que el valor de alpha es pequeño.
 
 ### Variamos el learning rate.
 
