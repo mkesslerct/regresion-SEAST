@@ -1,0 +1,124 @@
+---
+title: "Ilustración lm con R, conjunto geysr"
+author: "Mathieu Kessler"
+date: "20/04/2015"
+output: html_document
+---
+
+  
+
+```{r}
+geyser <- read.table('data/geyser.txt',
+                     sep = ",", header = FALSE)
+names(geyser) <- c("duracion", "intervalo")
+```
+
+## Empezamos visualizando el conjunto.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+ggplot(data = geyser, aes(x=duracion, y=intervalo)) + geom_point()
+```
+
+
+## Realizamos el ajuste lineal de intervalo sobre duracion, usando lm:
+
+```{r}
+geyser.lm <- lm(data=geyser, intervalo ~ duracion)
+```
+
+## Para obtener un resumen, y en particular las estimaciones de $\theta$:
+
+```{r}
+summary(geyser.lm)
+```
+
+## Matriz del modelo 
+
+```{r, eval = FALSE}
+model.matrix(geyser.lm)
+```
+
+
+```{r, echo = FALSE}
+model.matrix(geyser.lm)[1:10,]
+```
+
+## Objetos incluidos en geyser.lm
+
+```{r}
+names(geyser.lm)
+```
+
+## Gráficas de residuos
+
+```{r}
+plot(geyser.lm, which = 1)
+plot(geyser.lm, which = 2)
+```
+
+## Para obtener margénes de error para los theta:
+
+```{r}
+confint(geyser.lm)
+```
+
+## Para hacer predicción:
+
+Empezamos por  introducir los valores de las explicativas para las cuales queremos realizar la predicción en un nuevo data.frame.
+
+```{r}
+nuevo <- data.frame(duracion = c(5, 6.5, 7))
+nuevo
+```
+
+Usamos ahora la isntrucción predict
+```{r}
+predict(geyser.lm, nuevo)
+```
+
+### Predicción con margen de error para la respuesta promedio
+
+```{r}
+predict(geyser.lm, nuevo, interval = "conf")
+```
+
+### Predicción con margen de error para la valor posible de la respuesta
+
+```{r}
+predict(geyser.lm, nuevo, interval = "pred")
+
+```
+
+
+## Ejemplo con los datos de Galileo.
+
+```{r}
+galileo <- read.table('data/galileo.txt', header = FALSE)
+names(galileo) <- c("distancia", "altura")
+
+```
+
+Representación de los datos de forma gráfica.
+```{r}
+ggplot(data = galileo, aes(x=altura, y =distancia)) + geom_point()
+```
+
+Llevamos a cabo el ajuste:
+```{r}
+galileo.lm <- lm(data=galileo, distancia ~ altura + I(altura^2))
+plot(galileo.lm, which = 1)
+plot(galileo.lm, which = 2)
+
+galileo.lm1 <- lm(data=galileo, distancia ~ altura + I(altura^2) + I(altura^3))
+plot(galileo.lm1, which = 1)
+plot(galileo.lm1, which = 2)
+
+
+galileo.lm2 <- lm(data=galileo, distancia ~ altura + I(altura^2) + I(altura^3)+ I(altura^4))
+plot(galileo.lm2, which = 1)
+plot(galileo.lm2, which = 2)
+
+```
+
