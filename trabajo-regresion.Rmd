@@ -2,12 +2,15 @@ Trabajo Regresión lineal: predicción de la nota media de los alumnos de grado 
 ========================================================
 
 
-Nombre:
+Nombre: Pilar
 
-Apellidos:
+Apellidos:  Sánchez Torres
 
 ```{r preliminares}
 ## cargamos los paquetes dplyr, ggplot2
+
+library("dplyr")
+library(ggplot2)
 
 ```
 
@@ -31,7 +34,11 @@ Vamos a empezar con un conjunto simplificado donde sólo consideramos en cuanto 
 
 Cargar los datos en un dataframe llamado **GradosTelecoSimple**
 ```{r}
-## Completar aqui"
+GradosTelecoSimple <- read.table("data/notamediagradosETSIT-simple.csv", 
+                       sep=",", 
+                       dec=".", 
+                       header = TRUE, 
+                       stringsAsFactors =FALSE)
 
 ```
 
@@ -42,14 +49,16 @@ La nota media está calculada con las calificaciones de cada asignatura en una e
 Llevar a cabo la representación gráfica de la nota media al egresar en función de la calificación PAU obtenida al ingresar. 
 
 ```{r}
-## Completar aqui"
+ggplot(data = GradosTelecoSimple, aes(x = PAU_CALIFICACION_NOTA_MATERIA, y = notamedia)) +
+geom_point()
 
 ```
 
 Llevar a cabo la representación gráfica de la nota media al egresar en función del ranking en cuanto a calificación PAU, expresado en decil.
 
 ```{r}
-# Completar aquí
+ggplot(data = GradosTelecoSimple, aes(x = PAU_CALIFICACION_NOTA_MATERIA_DECIL, y = notamedia)) +
+geom_point()
 
 ```
 
@@ -71,7 +80,8 @@ Definir una variable y que contenga los valores de notamedia, y la matrix X que 
 $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
-# Completar aquí
+y <- GradosTelecoSimple$notamedia
+X <- as.matrix(cbind(1, GradosTelecoSimple$PAU_CALIFICACION_NOTA_MATERIA))
 
 ```
 
@@ -80,11 +90,9 @@ Vamos ahora a implementar la función coste que llamaremos J así como el gradie
 ```{r}
 J <- function(theta)
   {
-  # teneís que calcular el coste aquí
+ coste <- (1/length(y))*((t(y-X%*%theta))%*%(y-X%*%theta))
   
-
-  # fin completar
-  return(coste)}
+  return (coste)}
 ```
 
 El gradiente de la función coste se puede escribir de manera compacta (ver transparencias) 
@@ -94,7 +102,9 @@ $$\nabla J(\theta)=\frac{2}{n} \mathbf{X}^T\cdot \left(\mathbf{X}\theta-y\right)
 gradJ <- function(theta)
   {
   ## completar aquí para devolver el vector gradiente
-
+ gradiente <- (2 / length(y))*t(X) %*% (X %*% theta - y)
+ 
+ return(gradiente)
   }
 ```
 
@@ -123,7 +133,7 @@ $$\theta\leftarrow \theta-\alpha \nabla J(\theta).$$
 
 Usando un bucle (la instrucción **for** en R, podéis buscar en la ayuda), implementad el algoritmo del gradiente usando esta fórmula:
 
-```{r}
+```{r, eval=FALSE}
 ## Completar aquí con un bucle el algoritmo del gradiente
 theta=thetainicial
 for (i in 1:maxiter)
@@ -156,12 +166,24 @@ Tenéis que modificar ahora vuestra implementación del algoritmo del gradiente 
 ```{r}
 ## Completar aquí
 
+theta=thetainicial
+for (i in 1:maxiter)
+  {
+    theta <- theta - alpha * gradJ(theta)
+    
+    monitor[i+1,]=c(i,theta,J(theta), gradJ(theta), alpha)
+  }
+
+
+
+
 ```
 
 Podemos ahora representar gráficamente la evolución de la función coste en función de la iteración del algoritmo:
 ```{r}
 ## Completar aquí
-
+ggplot(data = monitor, aes(x = iter, y = J)) +
+geom_path(color="red") 
 ```
 
 
@@ -171,12 +193,16 @@ Para comprobarlo, tenéis que representar la evolución del coste pero entre la 
 
 ```{r}
 ## completar aquí...
+ggplot(data = monitor, aes(x = iter, y = J)) +
+geom_path(color="red") + xlim(50,3000) + ylim(0.142,0.147)
 
 ```
 
 Comprobamos así que no se ha alcanzado la convergencia, sino que el decrecimiento es muy lento. 
 
 Al comprobar las últimas filas del data.frame monitor, ¿podéis explicar por qué?
+
+Los valores se incrementan muy lentamente. 
 
 ### Variamos el learning rate.
 
@@ -197,6 +223,18 @@ monitor[1,] <- c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 ```{r}
 ## Completar aqui, bucle alpha para implementación gradiente
 
+alphas=c(0.001, 0.003, 0.01)
+for(j in 1:length(alphas)){
+  theta=thetainicial
+  alpha=alphas[j]
+for (i in 1:maxiter)
+  {
+    theta <- theta - alpha * gradJ(theta)
+monitor[maxiter*(j-1)+i+1,]=c(i,theta,J(theta), gradJ(theta), alpha)
+
+}
+
+}
 ```
 
 Ahora vamos a representar solamente para iter superior a 50, tres líneas de evolución de J en función de la iteración, una para cada valor de $\alpha$.
@@ -204,6 +242,8 @@ Ahora vamos a representar solamente para iter superior a 50, tres líneas de evo
 ```{r}
 monitor$alpha=factor(monitor$alpha)
 ## completar aquí, un ggplot de J en función de iter, (iter >50)
+ggplot(data = monitor, aes(x = iter, y = J, color=alpha)) +
+geom_path() + xlim(50,3000) + ylim(0.130,0.147)
 
 ```
 
@@ -223,13 +263,22 @@ monitor[1,] <- c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 
 ```{r}
 ## Completar aquí"
+theta=thetainicial
+for (i in 1:maxiter)
+  {
+    theta <- theta - alpha * gradJ(theta)
+monitor[i+1,]=c(i,theta,J(theta), gradJ(theta), alpha)
 
+
+}
 ```
 Representar gráficamente la evolución del coste para estas 50 iteraciones...
 
 ```{r}
 ## Completar aquí: ggplot evolución del coste en función de iter...
 
+ggplot(data = monitor, aes(x = iter, y = J)) +
+              geom_path() + xlim(0,30) 
 ```
 
 ### Parametros finales
@@ -247,8 +296,22 @@ monitor[1,]=c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 
 Para iterar el algoritmo incluyendo las condiciones que i debe ser inferior o igual a maxiter, y que deltaJ sea superior a 10^(-6), usamos la instrucción while (ver la ayuda)
 
-```{r}
+```{r, eval=FALSE}
 ## Completar aquí"
+  theta=thetainicial
+  Jprev=J(thetainicial)
+  deltaJ =1
+i = 0
+while(i<=maxiter && deltaJ>10^(-6)){
+
+  theta <- theta - alpha * gradJ(theta)
+  monitor[i+1,]=c(i,theta,J(theta), gradJ(theta), alpha)
+  deltaJ = abs( J(theta) - Jprev)
+  Jprev=J(theta)
+  
+i=i+1
+
+}
 
 ```
 
@@ -257,7 +320,7 @@ Para iterar el algoritmo incluyendo las condiciones que i debe ser inferior o ig
 Representamos la evolución a partir de la iteración 50:
 ```{r}
 ## Completar aquí: evolución de J en las 10000 últimas iteraciones..
-ggplot(subset(monitor, iter > 50 ) , aes(x = iter, y = J))+geom_line()
+ggplot(subset(monitor, iter > 50 ) , aes(x = iter, y = J))+geom_line() + xlim(0,30000)
 ```
 
 
@@ -276,6 +339,9 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 ```{r}
 ## Completar aquí: notamediagrados.lm
 
+notamediagrados.lm<- lm(data=GradosTelecoSimple, notamedia ~ PAU_CALIFICACION_NOTA_MATERIA)
+plot(notamediagrados.lm, which = 1)
+plot(notamediagrados.lm, which = 2)
 ```
 
 Usando la instrucción summary, comparar los resultados obtenidos por lm y nuestra estimación final con el algoritmo del gradiente...
@@ -286,7 +352,7 @@ summary(notamediagrados.lm)
 ```
 
 
-Comentarios: completar aquí...
+Comentarios: los resultados estimados obtenidos en hacer summary coinciden con los resultados obtenidos con el algoritmo del gradiente.
 
 
 
@@ -294,6 +360,9 @@ Usando la instrucción residuals aplicada a notamediagrados.lm, calcular el mín
 
 ```{r}
 ## completar aquí
+residuos <- residuals(notamediagrados.lm)
+residuos
+funcioncoste <- mean(residuos^2)
 
 ```
 
