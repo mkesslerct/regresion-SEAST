@@ -2,13 +2,14 @@ Trabajo Regresión lineal: predicción de la nota media de los alumnos de grado 
 ========================================================
 
 
-Nombre:
+Nombre: Javier
 
-Apellidos:
+Apellidos: López Fernández
 
 ```{r preliminares}
 ## cargamos los paquetes dplyr, ggplot2
-
+library("dplyr")
+library("ggplot2")
 ```
 
 # Introducción
@@ -32,7 +33,11 @@ Vamos a empezar con un conjunto simplificado donde sólo consideramos en cuanto 
 Cargar los datos en un dataframe llamado **GradosTelecoSimple**
 ```{r}
 ## Completar aqui"
-
+GradosTelecoSimple <- read.table(file = "data/notamediagradosETSIT-simple.csv",
+                                 head = TRUE,
+                                 sep = ",",
+                                 dec = ".",
+                                 stringsAsFactors = FALSE)
 ```
 
 La nota media está calculada con las calificaciones de cada asignatura en una escala que va de 1 a 4 (1 es "Aprobado"", 2 "Notable", 3 "Sobresaliente", 4 "Matrícula de Honor")
@@ -43,14 +48,14 @@ Llevar a cabo la representación gráfica de la nota media al egresar en funció
 
 ```{r}
 ## Completar aqui"
-
+ggplot(data = GradosTelecoSimple, aes(x = PAU_CALIFICACION_NOTA_MATERIA, y = notamedia)) + geom_point()
 ```
 
 Llevar a cabo la representación gráfica de la nota media al egresar en función del ranking en cuanto a calificación PAU, expresado en decil.
 
 ```{r}
 # Completar aquí
-
+ggplot(data = GradosTelecoSimple, aes(x = PAU_CALIFICACION_NOTA_MATERIA_DECIL, y = notamedia)) + geom_point()
 ```
 
 ## Ajuste de una recta, usando el algoritmo de gradiente
@@ -72,7 +77,8 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
 # Completar aquí
-
+y <- GradosTelecoSimple$notamedia
+X <- as.matrix(cbind(1, GradosTelecoSimple$PAU_CALIFICACION_NOTA_MATERIA))
 ```
 
 Vamos ahora a implementar la función coste que llamaremos J así como el gradiente de J, que llamaremos gradJ. De paso, aprenderemos a definir una función en R.
@@ -81,7 +87,9 @@ Vamos ahora a implementar la función coste que llamaremos J así como el gradie
 J <- function(theta)
   {
   # teneís que calcular el coste aquí
-  
+  aux <- y - X%*%theta
+  aux2 <- t(aux) %*% aux
+  coste <- (1/length(y))*sum(aux2)
 
   # fin completar
   return(coste)}
@@ -94,7 +102,9 @@ $$\nabla J(\theta)=\frac{2}{n} \mathbf{X}^T\cdot \left(\mathbf{X}\theta-y\right)
 gradJ <- function(theta)
   {
   ## completar aquí para devolver el vector gradiente
-
+  gradiente <- (2/length(y))*(t(X)%*%(X%*%theta - y))
+  
+  return (gradiente)
   }
 ```
 
@@ -155,13 +165,19 @@ Tenéis que modificar ahora vuestra implementación del algoritmo del gradiente 
 
 ```{r}
 ## Completar aquí
-
+theta=thetainicial
+index = 2
+for (i in 1:maxiter)
+  {
+    theta <- theta - alpha * gradJ(theta)
+    monitor[i,]=c(i, theta, J(theta), gradJ(theta), alpha)
+  }
 ```
 
 Podemos ahora representar gráficamente la evolución de la función coste en función de la iteración del algoritmo:
 ```{r}
 ## Completar aquí
-
+ggplot(data = monitor, aes(x = iter, y = J)) + geom_line()
 ```
 
 
@@ -171,12 +187,18 @@ Para comprobarlo, tenéis que representar la evolución del coste pero entre la 
 
 ```{r}
 ## completar aquí...
+monitor_filter <- monitor %>%
+  filter(between(iter, 50, 3000))
+
+ggplot(data = monitor_filter, aes(x = iter, y = J)) + geom_line()
 
 ```
 
 Comprobamos así que no se ha alcanzado la convergencia, sino que el decrecimiento es muy lento. 
 
 Al comprobar las últimas filas del data.frame monitor, ¿podéis explicar por qué?
+
+>Decrece tan lentamente porque en las últimas iteracciones el gradiente es muy próximo a 0, y al ser alpha tan pequeño la diferencia entre cada iteracción es prácticamente inexistente. Habría que aumentar alpha
 
 ### Variamos el learning rate.
 
@@ -196,7 +218,20 @@ monitor[1,] <- c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 
 ```{r}
 ## Completar aqui, bucle alpha para implementación gradiente
+## Completar aquí
+index = 2
+alpha<-c(0.001, 0.003, 0.01)
+for(alpha_i in alpha)
+{
+  theta=thetainicial
 
+  for (i in 1:maxiter)
+  {
+    theta <- theta - alpha_i * gradJ(theta)
+    monitor[index,]=c(i, theta, J(theta), gradJ(theta), alpha_i)
+    index = index + 1
+  }
+}
 ```
 
 Ahora vamos a representar solamente para iter superior a 50, tres líneas de evolución de J en función de la iteración, una para cada valor de $\alpha$.
@@ -204,7 +239,10 @@ Ahora vamos a representar solamente para iter superior a 50, tres líneas de evo
 ```{r}
 monitor$alpha=factor(monitor$alpha)
 ## completar aquí, un ggplot de J en función de iter, (iter >50)
+monitor_filter <- monitor %>%
+  filter(iter > 50)
 
+ggplot(data = monitor_filter, aes(x = iter, y = J, colour=alpha)) + geom_line()
 ```
 
 Nos queda probar con alpha=0.03 por ejemplo, pero usaremos menos iteraciones..
@@ -223,12 +261,20 @@ monitor[1,] <- c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 
 ```{r}
 ## Completar aquí"
+## Completar aquí
+theta=thetainicial
 
+for (i in 1:maxiter)
+ {
+  theta <- theta - alpha * gradJ(theta)
+  monitor[i,]=c(i, theta, J(theta), gradJ(theta), alpha)
+}
 ```
 Representar gráficamente la evolución del coste para estas 50 iteraciones...
 
 ```{r}
 ## Completar aquí: ggplot evolución del coste en función de iter...
+ggplot(data = monitor, aes(x = iter, y = J)) + geom_line()
 
 ```
 
@@ -249,7 +295,18 @@ Para iterar el algoritmo incluyendo las condiciones que i debe ser inferior o ig
 
 ```{r}
 ## Completar aquí"
+theta=thetainicial
+deltaJ = 1
+i = 2
 
+while(i <= maxiter && deltaJ > 10^(-6))
+{
+   Jprev <- J(theta)
+   theta <- theta - alpha * gradJ(theta)
+   deltaJ <- abs(J(theta) - Jprev)
+   monitor[i,]=c(i, theta, J(theta), gradJ(theta), alpha)
+   i=i+1
+}
 ```
 
 
@@ -275,7 +332,7 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
 ## Completar aquí: notamediagrados.lm
-
+notamediagrados.lm <- lm(data=GradosTelecoSimple, notamedia ~ PAU_CALIFICACION_NOTA_MATERIA)
 ```
 
 Usando la instrucción summary, comparar los resultados obtenidos por lm y nuestra estimación final con el algoritmo del gradiente...
@@ -294,7 +351,8 @@ Usando la instrucción residuals aplicada a notamediagrados.lm, calcular el mín
 
 ```{r}
 ## completar aquí
-
+r <- residuals(notamediagrados.lm)
+mean(r^2)
 ```
 
 
