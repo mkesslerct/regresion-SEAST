@@ -296,7 +296,7 @@ monitor[1,]=c(0, thetainicial, J(thetainicial), gradJ(thetainicial), alpha)
 
 Para iterar el algoritmo incluyendo las condiciones que i debe ser inferior o igual a maxiter, y que deltaJ sea superior a 10^(-6), usamos la instrucción while (ver la ayuda)
 
-```{r}
+```{r, eval=FALSE}
 ## Completar aquí"
   theta=thetainicial
   Jprev=J(thetainicial)
@@ -339,6 +339,9 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 ```{r}
 ## Completar aquí: notamediagrados.lm
 
+notamediagrados.lm<- lm(data=GradosTelecoSimple, notamedia ~ PAU_CALIFICACION_NOTA_MATERIA)
+plot(notamediagrados.lm, which = 1)
+plot(notamediagrados.lm, which = 2)
 ```
 
 Usando la instrucción summary, comparar los resultados obtenidos por lm y nuestra estimación final con el algoritmo del gradiente...
@@ -349,7 +352,7 @@ summary(notamediagrados.lm)
 ```
 
 
-Comentarios: completar aquí...
+Comentarios: los resultados estimados obtenidos en hacer summary coinciden con los resultados obtenidos con el algoritmo del gradiente.
 
 
 
@@ -357,6 +360,9 @@ Usando la instrucción residuals aplicada a notamediagrados.lm, calcular el mín
 
 ```{r}
 ## completar aquí
+residuos <- residuals(notamediagrados.lm)
+residuos
+funcioncoste <- mean(residuos^2)
 
 ```
 
