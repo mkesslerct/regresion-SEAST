@@ -319,6 +319,9 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
 ## Completar aquí: notamediagrados.lm
+notamediagrados.lm <- lm(data=GradosTelecoSimple, notamedia ~ PAU_CALIFICACION_NOTA_MATERIA)
+plot(notamediagrados.lm, which = 1)
+plot(notamediagrados.lm, which = 2)
 
 ```
 
@@ -330,7 +333,7 @@ summary(notamediagrados.lm)
 ```
 
 
-Comentarios: completar aquí...
+Comentarios: Nuestra estimación final era -0.0108 y 0.2127 utilizando el descenso de gradiente. Utilizando la función lm obtenemos -0.01076 y 0.21267. It works!
 
 
 
@@ -338,7 +341,8 @@ Usando la instrucción residuals aplicada a notamediagrados.lm, calcular el mín
 
 ```{r}
 ## completar aquí
-
+names(notamediagrados.lm)
+sum(residuals(notamediagrados.lm)^2)/length(residuals(notamediagrados.lm))
 ```
 
 

@@ -13,6 +13,15 @@ geyser <- read.table('data/geyser.txt',
 names(geyser) <- c("duracion", "intervalo")
 ```
 
+## Empezamos visualizando el conjunto.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+ggplot(data = geyser, aes(x=duracion, y=intervalo)) + geom_point()
+```
+
+
 ## Realizamos el ajuste lineal de intervalo sobre duracion, usando lm:
 
 ```{r}
@@ -79,6 +88,37 @@ predict(geyser.lm, nuevo, interval = "conf")
 
 ```{r}
 predict(geyser.lm, nuevo, interval = "pred")
+
 ```
- 
+
+
+## Ejemplo con los datos de Galileo.
+
+```{r}
+galileo <- read.table('data/galileo.txt', header = FALSE)
+names(galileo) <- c("distancia", "altura")
+
+```
+
+Representación de los datos de forma gráfica.
+```{r}
+ggplot(data = galileo, aes(x=altura, y =distancia)) + geom_point()
+```
+
+Llevamos a cabo el ajuste:
+```{r}
+galileo.lm <- lm(data=galileo, distancia ~ altura + I(altura^2))
+plot(galileo.lm, which = 1)
+plot(galileo.lm, which = 2)
+
+galileo.lm1 <- lm(data=galileo, distancia ~ altura + I(altura^2) + I(altura^3))
+plot(galileo.lm1, which = 1)
+plot(galileo.lm1, which = 2)
+
+
+galileo.lm2 <- lm(data=galileo, distancia ~ altura + I(altura^2) + I(altura^3)+ I(altura^4))
+plot(galileo.lm2, which = 1)
+plot(galileo.lm2, which = 2)
+
+```
 
