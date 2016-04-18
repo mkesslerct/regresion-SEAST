@@ -312,7 +312,7 @@ $$notamedia=\theta_0+\theta_1PAU\_CALIFICACION\_NOTA\_MATERIA$$
 
 ```{r}
 ## Completar aquí: notamediagrados.lm
-
+notamediagrados.lm <- lm(data=GradosTelecoSimple, notamedia ~ PAU_CALIFICACION_NOTA_MATERIA)
 ```
 
 Usando la instrucción summary, comparar los resultados obtenidos por lm y nuestra estimación final con el algoritmo del gradiente...
@@ -325,14 +325,16 @@ summary(notamediagrados.lm)
 
 Comentarios: completar aquí...
 
-
+Nos da un valor muy similar a nuestra estimación anterior, por lo que decidimos que es un valor correcto.
 
 Usando la instrucción residuals aplicada a notamediagrados.lm, calcular el mínimo de la función coste que podíamos perseguir con el algoritmo del gradiente... Comparar su valor con el que obtuvimos...
 
 ```{r}
 ## completar aquí
-
+mean(residuals(notamediagrados.lm)^2)
 ```
+
+El valor es igual al anterior.
 
 
 
