@@ -174,9 +174,9 @@ Vamos a crear con dplyr un dataframe que llamaremos **resumenerrores**, que sea 
 
 resumenerrores <- errores %>% group_by(caracteristicas) %>%
   summarise(
-    Error1= mean(errores^2),
-    Error2 = 100*(sum(abs(errores)<0.25)/length(errores)),
-    Error3 = 100*(sum(abs(errores)<0.1)/length(caracteristicas))
+    Error1= mean(errores^2, na.rm = TRUE),
+    Error2 = 100*(sum(abs(errores)<0.25, na.rm = TRUE)/length(errores)),
+    Error3 = 100*(sum(abs(errores)<0.1, na.rm = TRUE)/length(caracteristicas))
   )
 ```
 
@@ -193,12 +193,15 @@ Crear un objeto **training.lm.PAU.primercurso** que sea el resultado de llevar a
 
 ```{r}
 ## Completar aquí para obtener training.lm.PAU.primeroscursos
+training.lm.PAU.primercurso <- lm(data=GradosTeleco.training, notamedia ~ PAU_CALIFICACION_NOTA_MATERIA + PAU_CALIFICACION_NOTA_MATERIA_DECIL + FISICA_NOTA_MATERIA + FISICA_NOTA_MATERIA_DECIL + MATEMATICAS_II_NOTA_MATERIA + MATEMATICAS_II_NOTA_MATERIA_DECIL + FUNDAMENTOS_DE_PROGRAMACION_NOTA + FUNDAMENTOS_DE_PROGRAMACION_CONVOCS_PRESENTADAS_ACUMULA + FUNDAMENTOS_DE_PROGRAMACION_CONVOCS_HASTA_1RA_VEZ_ACUMULA + SISTEMAS_Y_CIRCUITOS_NOTA + SISTEMAS_Y_CIRCUITOS_CONVOCS_PRESENTADAS_ACUMULA + SISTEMAS_Y_CIRCUITOS_CONVOCS_HASTA_1RA_VEZ_ACUMULA)
+
 ```
 
 ### Predicción de la nota media para el conjunto test
 Crear un objeto llamado test.predict.PAU.primeroscursos, que contenga el resultado de las predicciones para los individuos del conjunto de test, usando el ajuste de training.lm.PAU.primeroscursos
 ```{r}
 ## Completar aquí par crear test.predict.PAU.primeros cursos
+test.predict.PAU.primercurso <- predict(training.lm.PAU.primercurso, GradosTeleco.test)
 ```
 
 ### Comprobación de la calidad de la predicción para el conjunto test.
@@ -206,6 +209,8 @@ Crear un objeto llamado test.predict.PAU.primeroscursos, que contenga el resulta
 Cremos ahora el vector errores.predict.PAU.primeroscursos que contenga los errores que hemos cometido en la predicción de las notas medias para el conjunto test, si usamos el nuevo ajuste.
 ```{r}
 ## Completar aquí para obtener el vector errores.predict.PAU.primeroscursos
+errores.predict.PAU.primercurso <-  GradosTeleco.test$notamedia - test.predict.PAU.primercurso
+
 ```
 
 Vamos ahora a añadir estos errores al dataframe errores que ya contenía los errores para el ajuste con solamente las características PAU.
@@ -220,6 +225,8 @@ Realizamos ahora una gráfica de densidad para visualizar la distribución de lo
 
 ```{r}
 ### Completar aquí, usando ggplot con geom_density,
+ggplot(data=errores, aes(x=errores, fill=caracteristicas)) + geom_density(alpha = 0.5)
+
 ```
 
 Finalmente, vamos a obtener los tres indicadores numéricos de la calidad de la predicción, al igual que para el ajuste anterior. Lo hacemos reutilizando el bloque "chunk" que ya programamos, sin necesidad de copiar y pegar, usando la opción ref.label: 
@@ -242,29 +249,40 @@ Crear un objeto **training.lm.completo** que sea el resultado de llevar a cabo, 
 
 ```{r}
 ## Completar aquí para obtener training.lm.completo
+training.lm.completo <- lm(data=GradosTeleco.training, notamedia ~ . - ALU_PLAN_ID - ALU_EXP_ID)
 ```
 ### Predicción de la nota media para el conjunto test
 Crear un objeto llamado test.predict.completo  , que contenga el resultado de las predicciones para los individuos del conjunto de test, usando el ajuste de training.lm.completo  
 ```{r}
 ## Completar aquí par crear test.predict.PAU.primeros cursos
+test.predict.completo <- predict(training.lm.completo, GradosTeleco.test)
+
 ```
 
 ### Comprobación de la calidad de la predicción para el conjunto test.
 
 Cremos ahora el vector errores.predict.completo   que contenga los errores que hemos cometido en la predicción de las notas medias para el conjunto test, si usamos el nuevo ajuste.
 ```{r}
-## Completar aquí para obtener el vector errores.predict.completo  
+## Completar aquí para obtener el vector errores.predict.completo 
+errores.predict.completo <-  GradosTeleco.test$notamedia - test.predict.completo
+
 ```
 
 Vamos ahora a añadir estos errores al dataframe errores que ya contenía los errores para el ajuste con solamente las características PAU.
 ```{r}
 ### Completar aquí
+errores <- rbind(errores,
+                 data.frame(caracteristicas = "Completo",
+                            errores = errores.predict.completo))
+
 ```
 
 Realizamos ahora una gráfica de densidad para visualizar la distribución de los errores cometidos en la predicción, pero distinguiendo entre los tres ajustes
 
 ```{r}
 ### Completar aquí, usando ggplot con geom_density,
+ggplot(data=errores, aes(x=errores, fill=caracteristicas)) + geom_density(alpha = 0.5)
+
 ```
 
 Finalmente, vamos a obtener los tres indicadores numéricos de la calidad de la predicción, al igual que para el ajuste anterior.
@@ -286,6 +304,8 @@ print(xtable(resumenerrores), type = "html", include.rownames =FALSE)
 
 En su opinión, ¿merece la pena incluir las asignaturas de la UPCT en la predicción?
 
+> Hay menos densidad de error conforme más datos tomamos por lo que la respueta es sí.
+
 ## Representación gráfica para el ajuste completo...
 
 Para visualizar nuestra predicción, usando el ajuste completo,  sobre el conjunto test, vamos a representar una nube de puntos de la nota media en función de la calificación obtenida en la PAU, PAU_CALIFICACION_NOTA_MATERIA, y añadiremos puntos rojos que corresponden a nuestra predicción de cada nota media usando el modelo completo.
@@ -293,5 +313,8 @@ Para visualizar nuestra predicción, usando el ajuste completo,  sobre el conjun
 ```{r}
 ## Completar aquí, con la representación de notamedia 
 ## en función de PAU_CALIFICACION_NOTA_MATERIA
+
+ggplot(data = GradosTeleco.test, aes(x = PAU_CALIFICACION_NOTA_MATERIA, y=notamedia)) + geom_point() + geom_point(data = data.frame(PAU_CALIFICACION_NOTA_MATERIA = GradosTeleco.test$PAU_CALIFICACION_NOTA_MATERIA, prediccion = test.predict.completo), aes(y=prediccion), color="red")
+
 ```
 
